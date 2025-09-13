@@ -15,6 +15,11 @@
 % --- Packages ---
 \usepackage{amsmath, amssymb}
 \usepackage{graphicx}
+% Allow graphics and \input to look in ../out/ (sibling of latex/)
+\graphicspath{{../out/}{./}}
+\makeatletter\def\input@path{{../out/}{./}}\makeatother
+\usepackage[utf8]{inputenc}
+
 \usepackage{booktabs, multirow}
 \usepackage{float}
 \usepackage{siunitx}
@@ -176,7 +181,7 @@ German Credit (Statlog) & 800 / 200 & 20+ (one-hot) & Binary & UCI \\
 \end{figure}
 
 \subsection{Performance Before vs. After Reweighting}
-\input{../out/perf_table.tex}
+\input{perf_table.tex}
 
 \subsection{Feature Importance Shifts}
 \begin{figure}[H]
@@ -218,8 +223,9 @@ We presented a data-centric interpretability framework for XGBoost that quantifi
 \noindent\textbf{Data and Code Availability.} Provide repository link and instructions to reproduce figures/tables.
 
 % --- References ---
-\bibliographystyle{plain}
+\bibliographystyle{sn-basic}
 \bibliography{refs}
+
 
 
 % -----------------------------------------------------------------
