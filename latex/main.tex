@@ -25,7 +25,6 @@
 \usepackage{adjustbox}
 \usepackage{caption}
 \usepackage{subcaption}
-\usepackage{float}
 
 % --- Bibliography ---
 % Use the filecontents environment to embed a refs.bib into this single file.
@@ -99,7 +98,7 @@ Machine learning models increasingly inform decisions in high-stakes domains, ra
 \subsection{Deletion Diagnostics for XGBoost}
 Let $\hat{y}_j$ denote the prediction on example $j$ from a baseline model trained on all $n$ training instances, and $\hat{y}_j^{(-i)}$ the prediction when instance $i$ is removed and the model retrained. Define the adapted influence score (Cook’s distance variant):
 \begin{equation}
-D_i \,=\, \frac{\sum_{j=1}^{n} \big(\hat{y}_j - \hat{y}_j^{(-i)}\big)^2}{(p+1)\,\mathrm{Var}\big(\hat{y}_j - \hat{y}_j^{(-i)}\big)}\,,
+D_i = \frac{\sum_{j=1}^{n} \big(\hat{y}_j - \hat{y}_j^{(-i)}\big)^2}{(p+1)\,\text{Var}\big(\hat{y}_j - \hat{y}_j^{(-i)}\big)}
 \label{eq:cooks}
 \end{equation}
 where $p$ is the number of features. For each $i$, we also record changes in train/test log loss, accuracy, and AUC between baseline and retrained models.
@@ -131,7 +130,7 @@ Algorithm~\ref{alg:diag} outlines the full pipeline.
 \caption{Deletion Diagnostics and Reweighting for XGBoost}
 \label{alg:diag}
 \begin{algorithmic}[1]
-\Require Training data $(X, y)$; test data $(X_{test}, y_{test})$; base params $\Theta$; rounds $T$.
+\Require Training data $(X, y)$; test data $(X_{\text{test}}, y_{\text{test}})$; base params $\Theta$; rounds $T$.
 \State Train baseline $\mathcal{M}$ with XGBoost$(\Theta, T)$ on $(X,y)$; obtain predictions and metrics.
 \For{each training instance $i=1\dots n$}
   \State Retrain $\mathcal{M}^{(-i)}$ on $(X\setminus x_i, y\setminus y_i)$.
@@ -148,11 +147,7 @@ Algorithm~\ref{alg:diag} outlines the full pipeline.
 We evaluate on three binary classification datasets with an 80/20 train/test split (seed=42). Models are trained with $\texttt{num\_boost\_round}=50$, objective $\texttt{binary:logistic}$, and evaluation metric $\texttt{logloss}$. We report log loss, accuracy, precision, recall, F1, and AUC.
 
 \begin{table}[H]
-\caption{Datasets}
-\label{tab:datasets}
 \centering
-\centering
-
 \caption{Datasets}
 \label{tab:datasets}
 \begin{tabular}{lcccc}
@@ -170,25 +165,30 @@ German Credit (Statlog) & 800 / 200 & 20+ (one-hot) & Binary & UCI \\
 \subsection{Influence Score Distribution}
 \begin{figure}[H]
   \centering
-  \includegraphics[width=.9\linewidth]{fig_influence_boxplots.pdf}% TODO: export from notebook
-  \caption{Influence (adapted Cook’s distance) distributions across datasets. The dashed line marks $\mu+2\sigma$.}
+  \includegraphics[width=.9\linewidth]{fig_influence_boxplots.pdf}
+  \caption{Influence (adapted Cook's distance) distributions across datasets. The dashed line marks $\mu+2\sigma$.}
   \label{fig:influence}
 \end{figure}
 
 \subsection{Performance Before vs. After Reweighting}
+\begin{table}[H]
+\centering
+\caption{Performance metrics before and after reweighting across datasets}
+\label{tab:performance}
 \input{../out/perf_table.tex}
+\end{table}
 
 \subsection{Feature Importance Shifts}
 \begin{figure}[H]
   \centering
   \begin{subfigure}{.49\linewidth}
     \centering
-    \includegraphics[width=\linewidth]{fig_feat_gain_before.pdf}% TODO
+    \includegraphics[width=\linewidth]{fig_feat_gain_before.pdf}
     \caption{Baseline feature gain (example: ILPD)}
   \end{subfigure}\hfill
   \begin{subfigure}{.49\linewidth}
     \centering
-    \includegraphics[width=\linewidth]{fig_feat_gain_after.pdf}% TODO
+    \includegraphics[width=\linewidth]{fig_feat_gain_after.pdf}
     \caption{Reweighted feature gain (example: ILPD)}
   \end{subfigure}
   \caption{Feature gain importance before/after reweighting.}
@@ -198,7 +198,7 @@ German Credit (Statlog) & 800 / 200 & 20+ (one-hot) & Binary & UCI \\
 \subsection{Influential Category Counts}
 \begin{figure}[H]
   \centering
-  \includegraphics[width=.7\linewidth]{fig_category_counts.pdf}% TODO
+  \includegraphics[width=.7\linewidth]{fig_category_counts.pdf}
   \caption{Counts of outliers, mislabeled, and edge cases among influential instances.}
   \label{fig:cats}
 \end{figure}
