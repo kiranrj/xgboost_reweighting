@@ -6,6 +6,12 @@
 \documentclass[sn-basic]{sn-jnl} % Springer Nature Journal style (basic)
 %\jyear{2025}
 
+
+% Look for graphics and \input files in ../out/
+\graphicspath{{../out/}{./}}
+\makeatletter\def\input@path{{../out/}{./}}\makeatother
+
+
 % --- Packages ---
 \usepackage{amsmath, amssymb}
 \usepackage{graphicx}
@@ -142,7 +148,11 @@ Algorithm~\ref{alg:diag} outlines the full pipeline.
 We evaluate on three binary classification datasets with an 80/20 train/test split (seed=42). Models are trained with $\texttt{num\_boost\_round}=50$, objective $\texttt{binary:logistic}$, and evaluation metric $\texttt{logloss}$. We report log loss, accuracy, precision, recall, F1, and AUC.
 
 \begin{table}[H]
+\caption{Datasets}
+\label{tab:datasets}
 \centering
+\centering
+
 \caption{Datasets}
 \label{tab:datasets}
 \begin{tabular}{lcccc}
@@ -166,7 +176,7 @@ German Credit (Statlog) & 800 / 200 & 20+ (one-hot) & Binary & UCI \\
 \end{figure}
 
 \subsection{Performance Before vs. After Reweighting}
-\input{perf_table.tex}
+\input{../out/perf_table.tex}
 
 \subsection{Feature Importance Shifts}
 \begin{figure}[H]
@@ -208,6 +218,7 @@ We presented a data-centric interpretability framework for XGBoost that quantifi
 \noindent\textbf{Data and Code Availability.} Provide repository link and instructions to reproduce figures/tables.
 
 % --- References ---
+\bibliographystyle{plain}
 \bibliography{refs}
 
 
