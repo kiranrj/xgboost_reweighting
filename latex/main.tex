@@ -1,0 +1,226 @@
+% Overleaf-ready LaTeX template (Springer Nature article format)
+% --------------------------------------------------------------
+% Compile on Overleaf with XeLaTeX or pdfLaTeX.
+% If sn-jnl.cls is unavailable in your Overleaf project, switch to \documentclass{article} (see fallback at the bottom).
+
+\documentclass[sn-basic]{sn-jnl} % Springer Nature Journal style (basic)
+%\jyear{2025}
+
+% --- Packages ---
+\usepackage{amsmath, amssymb}
+\usepackage{graphicx}
+\usepackage{booktabs, multirow}
+\usepackage{float}
+\usepackage{siunitx}
+\usepackage{hyperref}
+\usepackage{algorithm}
+\usepackage{algpseudocode}
+\usepackage{enumitem}
+\usepackage{adjustbox}
+\usepackage{caption}
+\usepackage{subcaption}
+\usepackage{float}
+
+% --- Bibliography ---
+% Use the filecontents environment to embed a refs.bib into this single file.
+\begin{filecontents*}{refs.bib}
+@inproceedings{Lundberg2017SHAP,
+  title={A Unified Approach to Interpreting Model Predictions},
+  author={Lundberg, Scott M and Lee, Su-In},
+  booktitle={Advances in Neural Information Processing Systems},
+  year={2017}
+}
+@inproceedings{Ribeiro2016LIME,
+  title={"Why Should I Trust You?": Explaining the Predictions of Any Classifier},
+  author={Ribeiro, Marco Tulio and Singh, Sameer and Guestrin, Carlos},
+  booktitle={KDD},
+  year={2016}
+}
+@inproceedings{KohLiang2017Influence,
+  title={Understanding Black-box Predictions via Influence Functions},
+  author={Koh, Pang Wei and Liang, Percy},
+  booktitle={ICML},
+  year={2017}
+}
+@inproceedings{ChenGuestrin2016XGBoost,
+  title={XGBoost: A Scalable Tree Boosting System},
+  author={Chen, Tianqi and Guestrin, Carlos},
+  booktitle={KDD},
+  year={2016}
+}
+@article{Kiran2024AdaBoostInterpretability,
+  title={A Novel Approach for Model Interpretability and Domain Aware Fine-Tuning in AdaBoost},
+  author={Kiran, Raj Joseph and Sanil, J. and Asharaf, S.},
+  journal={Human-Centric Intelligent Systems},
+  year={2024}
+}
+\end{filecontents*}
+
+% --- Metadata ---
+\title[Influence Score–Based Reweighting for XGBoost]{Influence Score–Based Instance Reweighting for Interpretable and Robust XGBoost Models}
+
+\author[1]{\fnm{First Author} \sur{Last}}
+\author[1]{\fnm{Second Author} \sur{Last}}
+\author[1]{\fnm{Third Author} \sur{Last}}
+\affil[1]{\orgdiv{School of Computer Science and Engineering}, \orgname{Kerala University of Digital Sciences, Innovation and Technology}, \orgaddress{\city{Thiruvananthapuram}, \country{India}}}
+\email{first.author@email.edu}
+
+\abstract{
+% Keep abstract concise (150–250 words). Replace with your finalized abstract.
+We propose a data-perspective interpretability method for XGBoost that identifies influential training instances via deletion diagnostics and an adapted Cook’s distance, then performs domain-aware fine-tuning by instance-specific reweighting. Across three benchmark datasets, our approach improves calibration (log loss) and AUC, while maintaining or improving accuracy and recall. We analyze the distribution of influence scores, categorize influential samples into outliers, mislabeled points, and edge cases, and quantify their effect on feature usage and gain. The resulting framework offers actionable interpretability and robustness gains with minimal modifications to standard XGBoost pipelines.
+}
+
+\keywords{XGBoost, interpretability, Cook’s distance, deletion diagnostics, influential instances, instance reweighting, robustness}
+
+\begin{document}
+\maketitle
+
+\section{Introduction}
+Machine learning models increasingly inform decisions in high-stakes domains, raising the need for transparent and trustworthy behavior. XGBoost~\cite{ChenGuestrin2016XGBoost} is widely adopted for its accuracy and efficiency, yet most interpretability techniques for tree ensembles are perturbation-based (e.g., LIME~\cite{Ribeiro2016LIME} and SHAP~\cite{Lundberg2017SHAP}) rather than \emph{data-centric}. We bridge this gap by adapting deletion diagnostics and Cook’s distance to quantify the \emph{instance-level} influence on XGBoost outcomes and by leveraging those insights to perform domain-aware fine-tuning via reweighting. This work extends prior data-perspective interpretability for AdaBoost~\cite{Kiran2024AdaBoostInterpretability} to gradient-boosted trees.
+
+\paragraph{Contributions.} \label{sec:contrib}
+\begin{itemize}[leftmargin=*]
+  \item A deletion-diagnostics procedure for XGBoost to quantify per-instance influence via an adapted Cook’s distance.
+  \item A principled thresholding and categorization of influential points (outliers, mislabeled, edge cases).
+  \item An instance-specific reweighting scheme that improves model calibration and AUC with minimal impact on accuracy.
+  \item Empirical validation on three datasets, with analyses of influence distributions and feature-importance shifts.
+\end{itemize}
+
+\section{Related Work}
+\textbf{Model-agnostic explanations.} LIME~\cite{Ribeiro2016LIME} and SHAP~\cite{Lundberg2017SHAP} explain predictions using local perturbations or Shapley values. \textbf{Influence-based analysis.} Influence functions approximate leave-one-out effects for differentiable models~\cite{KohLiang2017Influence}. Our method directly performs deletion diagnostics on XGBoost, connecting interpretability with actionable reweighting.
+
+\section{Methodology}
+\subsection{Deletion Diagnostics for XGBoost}
+Let $\hat{y}_j$ denote the prediction on example $j$ from a baseline model trained on all $n$ training instances, and $\hat{y}_j^{(-i)}$ the prediction when instance $i$ is removed and the model retrained. Define the adapted influence score (Cook’s distance variant):
+\begin{equation}
+D_i \,=\, \frac{\sum_{j=1}^{n} \big(\hat{y}_j - \hat{y}_j^{(-i)}\big)^2}{(p+1)\,\mathrm{Var}\big(\hat{y}_j - \hat{y}_j^{(-i)}\big)}\,,
+\label{eq:cooks}
+\end{equation}
+where $p$ is the number of features. For each $i$, we also record changes in train/test log loss, accuracy, and AUC between baseline and retrained models.
+
+\subsection{Influence Thresholding and Categorization}
+We identify influential points as those with $D_i$ above $\mu_D + 2\sigma_D$, where $\mu_D$ and $\sigma_D$ are the mean and standard deviation of influence scores. Influential points are then categorized:
+\begin{enumerate}[leftmargin=*]
+  \item \textbf{Outliers:} any feature’s absolute z-score $>3$.
+  \item \textbf{Mislabeled:} misclassified by the baseline (label vs. rounded prediction).
+  \item \textbf{Edge cases:} influential but neither outliers nor mislabeled.
+\end{enumerate}
+
+\subsection{Instance Reweighting}
+We assign sample weights $w_i$ per category (default $w_i=1$). A simple scheme is
+\begin{equation}
+ w_i \,=\, \begin{cases}
+ 0.1 & \text{if } i \text{ is an outlier},\\
+ 0.2 & \text{if } i \text{ is mislabeled},\\
+ 0.5 & \text{if } i \text{ is an edge case},\\
+ 1.0 & \text{otherwise.}
+ \end{cases}
+\end{equation}
+Optionally, weights may be modulated by observed changes in train/test loss upon deletion (e.g., more aggressive downweighting when both worsen).
+
+\subsection{Algorithm}
+Algorithm~\ref{alg:diag} outlines the full pipeline.
+
+\begin{algorithm}[H]
+\caption{Deletion Diagnostics and Reweighting for XGBoost}
+\label{alg:diag}
+\begin{algorithmic}[1]
+\Require Training data $(X, y)$; test data $(X_{test}, y_{test})$; base params $\Theta$; rounds $T$.
+\State Train baseline $\mathcal{M}$ with XGBoost$(\Theta, T)$ on $(X,y)$; obtain predictions and metrics.
+\For{each training instance $i=1\dots n$}
+  \State Retrain $\mathcal{M}^{(-i)}$ on $(X\setminus x_i, y\setminus y_i)$.
+  \State Compute $D_i$ via Eq.~\eqref{eq:cooks}; record $\Delta$metrics.
+\EndFor
+\State Compute influence threshold $\tau=\mu_D+2\sigma_D$; select $\mathcal{I}=\{i: D_i>\tau\}$.
+\State Categorize $\mathcal{I}$ into outliers/mislabeled/edge cases via z-scores and residuals.
+\State Construct weights $w_i$ and retrain weighted model $\mathcal{M}_w$.
+\State Evaluate metrics (log loss, accuracy, precision, recall, F1, AUC) and analyze feature importance shifts.
+\end{algorithmic}
+\end{algorithm}
+
+\section{Experimental Setup}
+We evaluate on three binary classification datasets with an 80/20 train/test split (seed=42). Models are trained with $\texttt{num\_boost\_round}=50$, objective $\texttt{binary:logistic}$, and evaluation metric $\texttt{logloss}$. We report log loss, accuracy, precision, recall, F1, and AUC.
+
+\begin{table}[H]
+\centering
+\caption{Datasets}
+\label{tab:datasets}
+\begin{tabular}{lcccc}
+\toprule
+Dataset & Samples (train/test) & Features & Task & Source \\
+\midrule
+Indian Liver Patient (ILPD) & 466 / 117 & 10 & Binary & UCI \\
+Breast Cancer Wisconsin & 455 / 114 & 30 & Binary & scikit-learn \\
+German Credit (Statlog) & 800 / 200 & 20+ (one-hot) & Binary & UCI \\
+\bottomrule
+\end{tabular}
+\end{table}
+
+\section{Results}
+\subsection{Influence Score Distribution}
+\begin{figure}[H]
+  \centering
+  \includegraphics[width=.9\linewidth]{fig_influence_boxplots.pdf}% TODO: export from notebook
+  \caption{Influence (adapted Cook’s distance) distributions across datasets. The dashed line marks $\mu+2\sigma$.}
+  \label{fig:influence}
+\end{figure}
+
+\subsection{Performance Before vs. After Reweighting}
+\input{perf_table.tex}
+
+\subsection{Feature Importance Shifts}
+\begin{figure}[H]
+  \centering
+  \begin{subfigure}{.49\linewidth}
+    \centering
+    \includegraphics[width=\linewidth]{fig_feat_gain_before.pdf}% TODO
+    \caption{Baseline feature gain (example: ILPD)}
+  \end{subfigure}\hfill
+  \begin{subfigure}{.49\linewidth}
+    \centering
+    \includegraphics[width=\linewidth]{fig_feat_gain_after.pdf}% TODO
+    \caption{Reweighted feature gain (example: ILPD)}
+  \end{subfigure}
+  \caption{Feature gain importance before/after reweighting.}
+  \label{fig:featgain}
+\end{figure}
+
+\subsection{Influential Category Counts}
+\begin{figure}[H]
+  \centering
+  \includegraphics[width=.7\linewidth]{fig_category_counts.pdf}% TODO
+  \caption{Counts of outliers, mislabeled, and edge cases among influential instances.}
+  \label{fig:cats}
+\end{figure}
+
+\section{Discussion}
+We observe consistent gains in calibration (lower log loss) and AUC. On ILPD, recall improves while precision is nearly unchanged, aligning with medical settings where sensitivity is critical. Breast Cancer gains concentrate in log loss and AUC, indicating improved ranking and probability estimates without changing accuracy.
+
+\paragraph{Computational Considerations.} Deletion diagnostics require $\mathcal{O}(n)$ retrainings. Future work includes approximations via influence functions and sub-sampling strategies.
+
+\section{Conclusion and Future Work}
+We presented a data-centric interpretability framework for XGBoost that quantifies instance influence and improves robustness via reweighting. Future work: efficient approximations, extension to LightGBM/CatBoost, and integration with SHAP for hybrid explanations.
+
+\bmhead{Acknowledgements}
+(Optional.)
+
+\vspace{1em}
+\noindent\textbf{Data and Code Availability.} Provide repository link and instructions to reproduce figures/tables.
+
+% --- References ---
+\bibliography{refs}
+
+
+% -----------------------------------------------------------------
+% Fallback: If sn-jnl is unavailable on Overleaf, replace the preamble
+% with the following minimal article setup:
+%
+% \documentclass{article}
+% \usepackage[margin=1in]{geometry}
+% ... (same packages) ...
+% \begin{document}
+% ... (same content) ...
+% \end{document}
+% -----------------------------------------------------------------
+
+\end{document}
