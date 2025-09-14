@@ -16,15 +16,16 @@
 \usepackage{amsmath, amssymb}
 \usepackage{graphicx}
 \usepackage{booktabs, multirow}
-\usepackage{float}
+% \usepackage{float}
 \usepackage{siunitx}
 \usepackage{hyperref}
 \usepackage{algorithm}
 \usepackage{algpseudocode}
 \usepackage{enumitem}
 \usepackage{adjustbox}
-\usepackage{caption}
-\usepackage{subcaption}
+% \usepackage{caption}
+% \usepackage{subcaption}
+\usepackage{booktabs}
 
 % --- Bibliography ---
 % Use the filecontents environment to embed a refs.bib into this single file.
@@ -146,20 +147,21 @@ Algorithm~\ref{alg:diag} outlines the full pipeline.
 \section{Experimental Setup}
 We evaluate on three binary classification datasets with an 80/20 train/test split (seed=42). Models are trained with $\texttt{num\_boost\_round}=50$, objective $\texttt{binary:logistic}$, and evaluation metric $\texttt{logloss}$. We report log loss, accuracy, precision, recall, F1, and AUC.
 
-\begin{table}[H]
+\begin{table}[tbp]   % was [H]
 \centering
 \caption{Datasets}
 \label{tab:datasets}
-\begin{tabular}{lcccc}
+\begin{tabular}{@{}lcccc@{}} % @{} trims extra left/right padding (optional)
 \toprule
 Dataset & Samples (train/test) & Features & Task & Source \\
 \midrule
 Indian Liver Patient (ILPD) & 466 / 117 & 10 & Binary & UCI \\
-Breast Cancer Wisconsin & 455 / 114 & 30 & Binary & scikit-learn \\
-German Credit (Statlog) & 800 / 200 & 20+ (one-hot) & Binary & UCI \\
+Breast Cancer Wisconsin     & 455 / 114 & 30 & Binary & scikit-learn \\
+German Credit (Statlog)     & 800 / 200 & 20+ (one-hot) & Binary & UCI \\
 \bottomrule
 \end{tabular}
 \end{table}
+
 
 \section{Results}
 \subsection{Influence Score Distribution}
@@ -170,13 +172,13 @@ German Credit (Statlog) & 800 / 200 & 20+ (one-hot) & Binary & UCI \\
   \label{fig:influence}
 \end{figure}
 
-\subsection{Performance Before vs. After Reweighting}
-\begin{table}[H]
-\centering
-\caption{Performance metrics before and after reweighting across datasets}
-\label{tab:performance}
-\input{../out/perf_table.tex}
-\end{table}
+% \subsection{Performance Before vs. After Reweighting}
+% \begin{table}[H]
+% \centering
+% \caption{Performance metrics before and after reweighting across datasets}
+% \label{tab:performance}
+% \input{../out/perf_table.tex}
+% \end{table}
 
 \subsection{Feature Importance Shifts}
 \begin{figure}[H]
