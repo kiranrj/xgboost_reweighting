@@ -144,11 +144,10 @@ Algorithm~\ref{alg:diag} outlines the full pipeline.
 \end{algorithm}
 
 \section{Experimental Setup}
-We evaluate on three binary classification datasets with an 80/20 train/test split (seed=42). Models are trained with $\texttt{num\_boost\_round}=50$, objective $\texttt{binary:logistic}$, and evaluation metric $\texttt{logloss}$. We report log loss, accuracy, precision, recall, F1, and AUC.
+We evaluate on three binary classification datasets with an 80/20 train/test split (seed=42). Models are trained with \texttt{num\_boost\_round}=50, objective \texttt{binary:logistic}, and evaluation metric \texttt{logloss}. We report log loss, accuracy, precision, recall, F1, and AUC.
 
-\begin{table}[H]
-\centering
-\caption{Datasets}
+\begin{center}
+\captionof{table}{Datasets}
 \label{tab:datasets}
 \begin{tabular}{lcccc}
 \toprule
@@ -159,7 +158,7 @@ Breast Cancer Wisconsin & 455 / 114 & 30 & Binary & scikit-learn \\
 German Credit (Statlog) & 800 / 200 & 20+ (one-hot) & Binary & UCI \\
 \bottomrule
 \end{tabular}
-\end{table}
+\end{center}
 
 \section{Results}
 \subsection{Influence Score Distribution}
@@ -171,12 +170,11 @@ German Credit (Statlog) & 800 / 200 & 20+ (one-hot) & Binary & UCI \\
 \end{figure}
 
 \subsection{Performance Before vs. After Reweighting}
-\begin{table}[H]
-\centering
-\caption{Performance metrics before and after reweighting across datasets}
+\begin{center}
+\captionof{table}{Performance metrics before and after reweighting across datasets}
 \label{tab:performance}
 \input{../out/perf_table.tex}
-\end{table}
+\end{center}
 
 \subsection{Feature Importance Shifts}
 \begin{figure}[H]
