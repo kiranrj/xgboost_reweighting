@@ -16,16 +16,15 @@
 \usepackage{amsmath, amssymb}
 \usepackage{graphicx}
 \usepackage{booktabs, multirow}
-% \usepackage{float}
+\usepackage{float}
 \usepackage{siunitx}
 \usepackage{hyperref}
 \usepackage{algorithm}
 \usepackage{algpseudocode}
 \usepackage{enumitem}
 \usepackage{adjustbox}
-% \usepackage{caption}
-% \usepackage{subcaption}
-\usepackage{booktabs}
+\usepackage{caption}
+\usepackage{subcaption}
 
 % --- Bibliography ---
 % Use the filecontents environment to embed a refs.bib into this single file.
@@ -150,7 +149,7 @@ We evaluate on three binary classification datasets with an 80/20 train/test spl
 \begin{center}
 \captionof{table}{Datasets}
 \label{tab:datasets}
-\begin{tabular}{@{}lcccc@{}} % @{} trims extra left/right padding (optional)
+\begin{tabular}{lcccc}
 \toprule
 Dataset & Samples (train/test) & Features & Task & Source \\
 \midrule
@@ -160,7 +159,6 @@ German Credit (Statlog)     & 800 / 200 & 20+ (one-hot) & Binary & UCI \\
 \bottomrule
 \end{tabular}
 \end{center}
-
 
 \section{Results}
 \subsection{Influence Score Distribution}
